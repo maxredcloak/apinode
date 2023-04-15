@@ -1,9 +1,6 @@
 const UserModel = require('../models/users.model');
-const crypto = require('crypto');
-exports.default = (req,res) => {
-    res.status(200).send({});
 
-}
+
 exports.insert = (req, res) => {
     if(!req.body.user_id || !req.body.password || req.body.user_id.length === 0 || req.body.password.length === 0 ){
         res.status(400).send({
