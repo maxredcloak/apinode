@@ -1,7 +1,7 @@
 version: '3'
 services:
   api:
-    image: apinode
+    image: makinhs/rest-api-tutorial
     build: .
     networks:
       - backend
@@ -20,7 +20,7 @@ services:
       - "27017:27017"
 
   web-cli:
-    image: apinode
+    image: makinhs/rest-api-tutorial
     links:
       - mongo
     networks:
