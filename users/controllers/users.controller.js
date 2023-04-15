@@ -65,47 +65,39 @@ exports.insert = (req, res) => {
         });
 };
 
-
-exports.list = (req, res) => {
-    let limit = req.query.limit && req.query.limit <= 100 ? parseInt(req.query.limit) : 10;
-    let page = 0;
-    if (req.query) {
-        if (req.query.page) {
-            req.query.page = parseInt(req.query.page);
-            page = Number.isInteger(req.query.page) ? req.query.page : 0;
-        }
-    }
-    UserModel.list(limit, page)
-        .then((result) => {
-            res.status(200).send(result);
-        })
-};
-
 exports.getById = (req, res) => {
-
-    UserModel.findByUser_id(req.params.userId)
-    .then((result) => {
-        if(result.length > 0){
-            res.status(200).send(result[0].comment && result[0].comment.length > 0 ? {
-                "message": "User details by user_id",
-                "user": {
-                    "user_id": result[0].user_id,
-                    "nickname": result[0].nickname && result[0].nickname.length > 0 ? result[0].nickname : result[0].user_id,
-                    "comment": result[0].comment,
-                }
-            }:{
-                "message": "User details by user_id",
-                "user": {
-                    "user_id": result[0].user_id,
-                    "nickname": result[0].nickname && result[0].nickname.length > 0 ? result[0].nickname : result[0].user_id,
-                }
-            });
-        }else{
-            res.status(400).send({
-                "message": "No User found"
+    const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
+    const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':')
+    UserModel.findByUser_id(login).then((result) => {
+        if(result.length === 0 || result[0].password !== password) {
+            res.status(401).send({
+                "message": "Authentication Failed"
             });
         }
-    });
+        UserModel.findByUser_id(req.params.userId)
+        .then((result) => {
+            if(result.length > 0){
+                res.status(200).send(result[0].comment && result[0].comment.length > 0 ? {
+                    "message": "User details by user_id",
+                    "user": {
+                        "user_id": result[0].user_id,
+                        "nickname": result[0].nickname && result[0].nickname.length > 0 ? result[0].nickname : result[0].user_id,
+                        "comment": result[0].comment,
+                    }
+                }:{
+                    "message": "User details by user_id",
+                    "user": {
+                        "user_id": result[0].user_id,
+                        "nickname": result[0].nickname && result[0].nickname.length > 0 ? result[0].nickname : result[0].user_id,
+                    }
+                });
+            }else{
+                res.status(400).send({
+                    "message": "No User found"
+                });
+            }
+        });
+    })
 };
 exports.patchById = (req, res) => {
     const b64auth = (req.headers.authorization || '').split(' ')[1] || ''

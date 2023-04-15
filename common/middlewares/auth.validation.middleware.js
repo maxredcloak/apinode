@@ -2,21 +2,6 @@ const jwt = require('jsonwebtoken'),
     secret = require('../config/env.config.js').jwt_secret,
     crypto = require('crypto');
 
-
-exports.validateUser = (req,res,next) => {
-    const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
-    const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':')
-    UserModel.findByUser_id(login).then((result) => {
-        if(result.length === 0 || result[0].password !== password) {
-            res.status(401).send({
-                "message": "Authentication Failed"
-            });
-            return;
-        }
-        req.body = req.login;
-        return next();
-    }); 
-}
 exports.verifyRefreshBodyField = (req, res, next) => {
     if (req.body && req.body.refresh_token) {
         return next();
