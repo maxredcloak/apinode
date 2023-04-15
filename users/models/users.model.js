@@ -2,11 +2,12 @@ const mongoose = require('../../common/services/mongoose.service').mongoose;
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-    firstName: String,
-    lastName: String,
-    email: String,
-    password: String,
-    permissionLevel: Number
+   // firstName: String,
+   // lastName: String,
+   // email: String,
+   user_id: String, 
+   password: String,
+   permissionLevel: Number
 });
 
 userSchema.virtual('id').get(function () {
@@ -24,7 +25,9 @@ userSchema.findById = function (cb) {
 
 const User = mongoose.model('Users', userSchema);
 
-
+exports.findByUser_id = (user_id) => {
+    return User.find({user_id: user_id});
+};
 exports.findByEmail = (email) => {
     return User.find({email: email});
 };
