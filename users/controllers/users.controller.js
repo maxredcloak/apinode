@@ -48,7 +48,7 @@ exports.insert = (req, res) => {
                         res.status(200).send({
                             "message": "Account successfully created",
                             user:{
-                                user_id: result.user_id,
+                                "user_id": result.user_id,
                                 "nickname": result.user_id,
                             },
                     });
@@ -79,47 +79,97 @@ exports.list = (req, res) => {
 };
 
 exports.getById = (req, res) => {
-    UserModel.findByUser_id(req.params.userId)
+    const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
+    const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':')
+    UserModel.findByUser_id(login).then((result) => {
+        if(result.length === 0 || result[0].password !== password) {
+            res.status(401).send({
+                "message": "Authentication Failed"
+            });
+        }
+        UserModel.findByUser_id(req.params.userId)
         .then((result) => {
-            if(result){
-                res.status(200).send({
+            if(result.length > 0){
+                res.status(200).send(result[0].comment && result[0].comment.length > 0 ?{
                     "message": "User details by user_id",
-
-                    "a":result,
                     "user": {
-                        "user_id": result.user_id,
-                        "nickname": result.user_id
+                        "user_id": result[0].user_id,
+                        "nickname": result[0].nickname && result[0].nickname.length > 0 ? result[0].nickname : result[0].user_id,
+                    }
+                }:{
+                    "message": "User details by user_id",
+                    "user": {
+                        "user_id": result[0].user_id,
+                        "nickname": result[0].nickname && result[0].nickname.length > 0 ? result[0].nickname : result[0].user_id,
+                        "comment": result[0].comment,
                     }
                 });
             }else{
                 res.status(400).send({
                     "message": "No User found"
-                  });
+                });
             }
         });
+    })
 };
 exports.patchById = (req, res) => {
-    if (req.body.password) {
-        let salt = crypto.randomBytes(16).toString('base64');
-        let hash = crypto.createHmac('sha512', salt).update(req.body.password).digest("base64");
-        req.body.password = salt + "$" + hash;
-    }
-
-    UserModel.patchUser(req.params.userId, req.body)
-        .then((result) => {
-            res.status(204).send({});
+    const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
+    const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':')
+    UserModel.findByUser_id(login).then((result) => {
+        if(result.length === 0 || result[0].password !== password) {
+            res.status(401).send({
+                "message": "Authentication Failed"
+            });
+        }
+        if((!req.body.nickname && !req.body.comment) || (req.body.nickname.length === 0 && req.body.comment.length === 0)){
+            res.status(400).send({
+                "message": "User updation failed",
+                "cause": "required nickname or comment"
+            });
+            return;
+        }
+        if(login !== req.params.userId){
+            res.status(400).send({
+                "message": "No Permission for Update"
+            });
+            return;
+        }
+        if(req.body.user_id && req.body.user_id.length > 0 || req.body.user_id && req.body.password.length > 0 ){
+            res.status(400).send({
+                "message": "User updation failed",
+                "cause": "not updatable user_id and password"
+            });
+            return;
+        }
+        UserModel.patchUser(req.params.userId, req.body)
+            .then((result) => {
+                res.status(200).send({
+                    "message": "User successfully updated",
+                    "recipe": [
+                      {
+                        "nickname": result.nickname,
+                        "comment": result.comment ? result.comment : ""
+                      }
+                ]
+            });
         });
-
+    });
 };
 
 exports.removeById = (req, res) => {
-    UserModel.removeById(req.params.userId)
-        .then((result)=>{
-            res.status(200).send({
-                "message": "Account and user successfully removed"
-              });
-              res.status(200).send({
+    const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
+    const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':')
+    UserModel.findByUser_id(login).then((result) => {
+        if(result.length === 0 || result[0].password !== password) {
+            res.status(401).send({
                 "message": "Authentication Failed"
-              });
+            });
+        }
+        UserModel.removeById(req.params.userId)
+            .then((result)=>{
+                res.status(200).send({
+                    "message": "Account and user successfully removed"
+            });
         });
+    });
 };

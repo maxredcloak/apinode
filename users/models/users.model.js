@@ -7,7 +7,10 @@ const userSchema = new Schema({
    // email: String,
    user_id: String, 
    password: String,
+   nickname: String,
+   comment: String,
    permissionLevel: Number
+
 });
 
 userSchema.virtual('id').get(function () {
@@ -27,6 +30,10 @@ const User = mongoose.model('Users', userSchema);
 
 exports.findByUser_id = (user_id) => {
     return User.find({user_id: user_id});
+};
+exports.login = (user_id,password) => {
+    const user = User.find({user_id: user_id});
+    return user.length > 0 && user[0].password === password;
 };
 exports.findByEmail = (email) => {
     return User.find({email: email});
@@ -63,13 +70,13 @@ exports.list = (perPage, page) => {
 
 exports.patchUser = (id, userData) => {
     return User.findOneAndUpdate({
-        _id: id
+        user_id: id
     }, userData);
 };
 
 exports.removeById = (userId) => {
     return new Promise((resolve, reject) => {
-        User.deleteMany({_id: userId}, (err) => {
+        User.deleteMany({user_id: userId}, (err) => {
             if (err) {
                 reject(err);
             } else {
