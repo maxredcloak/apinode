@@ -1,6 +1,5 @@
 const UserModel = require('../models/users.model');
 
-
 exports.insert = (req, res) => {
     if(!req.body.user_id || !req.body.password || req.body.user_id.length === 0 || req.body.password.length === 0 ){
         res.status(400).send({

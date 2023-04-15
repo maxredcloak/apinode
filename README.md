@@ -1,4 +1,4 @@
-Boilerplate: https://github.com/makinhs/expressjs-api-tutorial
+
 
 ## Before using
 
@@ -13,8 +13,5 @@ Boilerplate: https://github.com/makinhs/expressjs-api-tutorial
 To run project using docker, use the following command:
  -  docker compose up
 
-To run the project, please use a command line the following:
- - `npm start`
-    - It will run the server at port 3600.
-
-
+## Boilerplate
+https://github.com/makinhs/expressjs-api-tutorial
